@@ -8,10 +8,12 @@ on:
   workflow_dispatch: # Allows manual run from GitHub UI
 
 env:
-  # Docker Hub credentials are set using the secrets you created
+  # Docker Hub credentials (Secret names must match what you saved)
   DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-  # We use the short commit hash as a unique version tag for backend services
   BACKEND_TAG: ${{ github.sha }} 
+  # --- Define the project path structure based on your GitHub repository ---
+  BACKEND_ROOT: ./JFSD_BackendDeployment-main/
+  FRONTEND_ROOT: ./JFSD_FrontendDeployment-main/
 
 jobs:
   # =======================================================
@@ -22,22 +24,21 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }} # Uses the secure Access Token
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # --- Build and Push: admin_service ---
       - name: Build and push admin_service
         uses: docker/build-push-action@v5
         with:
-          context: ./admin_service
-          file: ./admin_service/Dockerfile
+          # Context is now set to look inside the JFSD_BackendDeployment-main folder
+          context: ${{ env.BACKEND_ROOT }}admin_service/
+          file: ${{ env.BACKEND_ROOT }}admin_service/Dockerfile
           push: true
           tags: ${{ env.DOCKER_USERNAME }}/admin_service:${{ env.BACKEND_TAG }}
           
@@ -45,8 +46,8 @@ jobs:
       - name: Build and push sf_feedback_service
         uses: docker/build-push-action@v5
         with:
-          context: ./sf_feedback_service
-          file: ./sf_feedback_service/Dockerfile
+          context: ${{ env.BACKEND_ROOT }}sf_feedback_service/
+          file: ${{ env.BACKEND_ROOT }}sf_feedback_service/Dockerfile
           push: true
           tags: ${{ env.DOCKER_USERNAME }}/sf_feedback_service:${{ env.BACKEND_TAG }}
 
@@ -58,10 +59,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -72,8 +71,7 @@ jobs:
       - name: Build and push frontend image
         uses: docker/build-push-action@v5
         with:
-          context: ./JFSD_FrontendDeployment-main
-          file: ./JFSD_FrontendDeployment-main/Dockerfile
+          context: ${{ env.FRONTEND_ROOT }}
+          file: ${{ env.FRONTEND_ROOT }}Dockerfile
           push: true
-          # Frontend typically uses 'latest' tag for easy Kubernetes deployment
           tags: ${{ env.DOCKER_USERNAME }}/frontend:latest
