@@ -1,0 +1,79 @@
+
+
+services:
+  # --- FRONTEND SERVICE ---
+  frontend:
+    # Context points to the folder containing its Dockerfile
+    build:
+      context: ./JFSD_FrontendDeployment-main/JFSD_FrontendDeployment-main 
+    # Map host port 80 to container port 80 for browser access
+    ports:
+      - "80:80" 
+    networks:
+      - app-network
+
+  # --- BACKEND MICROSERVICES ---
+
+  student_service:
+    build:
+      context: ./JFSD_BackendDeployment-main/JFSD_BackendDeployment-main/student_service 
+    networks:
+      - app-network
+    # Expose for internal service-to-service communication
+    expose:
+      - "2001" 
+    # Use environment variables to inject other service URLs (important for your dependencies)
+    environment:
+      ADMIN_SERVICE_URL: http://admin_service:2002
+      COURSE_SERVICE_URL: http://course_service:2003
+
+  admin_service:
+    build:
+      context: ./JFSD_BackendDeployment-main/JFSD_BackendDeployment-main/admin_service 
+    networks:
+      - app-network
+    # Mapping the port for external access (e.g., from the frontend/testing)
+    ports:
+      - "8080:2002" 
+    expose:
+      - "2002"
+    environment:
+      STUDENT_SERVICE_URL: http://student_service:2001
+      FACULTY_SERVICE_URL: http://faculty_service:2004
+
+  course_service:
+    build:
+      context: ./JFSD_BackendDeployment-main/JFSD_BackendDeployment-main/course_service
+    networks:
+      - app-network
+    expose:
+      - "2003" 
+
+  faculty_service:
+    build:
+      context: ./JFSD_BackendDeployment-main/JFSD_BackendDeployment-main/faculty_service
+    networks:
+      - app-network
+    expose:
+      - "2004" 
+
+  sc_feedback_service:
+    build:
+      context: ./JFSD_BackendDeployment-main/JFSD_BackendDeployment-main/sc_feedback_service
+    networks:
+      - app-network
+    expose:
+      - "2005" 
+
+  sf_feedback_service:
+    build:
+      context: ./JFSD_BackendDeployment-main/JFSD_BackendDeployment-main/sf_feedback_service
+    networks:
+      - app-network
+    expose:
+      - "2006" 
+
+# --- NETWORK DEFINITION ---
+networks:
+  app-network:
+    driver: bridge
