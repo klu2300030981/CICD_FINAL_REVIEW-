@@ -8,12 +8,13 @@ on:
   workflow_dispatch: # Allows manual run from GitHub UI
 
 env:
-  # Docker Hub credentials (Secret names must match what you saved)
+  # Docker Hub credentials
   DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   BACKEND_TAG: ${{ github.sha }} 
-  # --- Define the project path structure based on your GitHub repository ---
-  BACKEND_ROOT: ./JFSD_BackendDeployment-main/
-  FRONTEND_ROOT: ./JFSD_FrontendDeployment-main/
+  # --- CRITICAL FIX: Adjusted path for doubly nested folders (Backend) ---
+  BACKEND_ROOT: ./JFSD_BackendDeployment-main/JFSD_BackendDeployment-main/
+  # --- CRITICAL FIX: Adjusted path for doubly nested folders (Frontend) ---
+  FRONTEND_ROOT: ./JFSD_FrontendDeployment-main/JFSD_FrontendDeployment-main/
 
 jobs:
   # =======================================================
@@ -36,7 +37,6 @@ jobs:
       - name: Build and push admin_service
         uses: docker/build-push-action@v5
         with:
-          # Context is now set to look inside the JFSD_BackendDeployment-main folder
           context: ${{ env.BACKEND_ROOT }}admin_service/
           file: ${{ env.BACKEND_ROOT }}admin_service/Dockerfile
           push: true
