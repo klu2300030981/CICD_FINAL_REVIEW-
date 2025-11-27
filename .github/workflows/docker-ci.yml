@@ -77,4 +77,3 @@ jobs:
           push: true
           # Frontend typically uses 'latest' tag for easy Kubernetes deployment
           tags: ${{ env.DOCKER_USERNAME }}/frontend:latest
-
